@@ -4,6 +4,8 @@
 #define tick 10000 // 틱레이트 마이크로초 단위 1초에 100틱
 
 bool fail;
+const int width = 20; //맵의 너비
+const int height = 20; //맵의 높이
 int stage;
 int map[4][21][21] = {
     {
@@ -59,4 +61,29 @@ void reset()
 {
     fail = false;
     stage = 0;
+}
+void show()
+{
+    clear();
+    for (int i = 0; i < width; i++) {
+        mvprintw(0, i, "+")
+    }
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if (i == 0 || i == 19) {
+                if (j == 0 || j == 19) {
+                    mvprintw(i, j, "#")
+                }
+                else {
+                    mvprintw(i, j, "+")
+                }
+            }
+            else if (j == 0 || j == 19) {
+                if (i != 0 || i != 19) {
+                    mvprintw(i, j, "+")
+                }
+            }
+        }
+    }
+}
 }

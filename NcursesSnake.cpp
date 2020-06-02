@@ -1,10 +1,17 @@
 #include <ncurses.h>
 #include <unistd.h>
+#include <vector>
+
+using namespace std;
 
 #define tick 10000 // 틱레이트 마이크로초 단위 1초에 100틱
 
-bool fail;
+bool fail; // 게임 실패 여부
 int stage;
+char dir; // 방향 U D L R
+int movetimer; // move 함수용 타이머 시간 저장
+vector<int> snakex;
+vector<int> snakey; // 뱀 x, y좌표
 int map[4][21][21] = {
     {
         {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
@@ -44,6 +51,8 @@ int main()
     nodelay(stdscr, true); // 키 입력 기다리지 않음
     noecho(); // 입력받은 키 출력하지 않음
     curs_set(0); // 커서 숨기기
+    cbreak(); // 입력받은 키 바로 활용
+    keypad(stdscr, TRUE); // 특수 키 사용 가능
     reset();
     while(!fail)
     {
@@ -60,7 +69,85 @@ void reset()
 {
     fail = false;
     stage = 0;
+    movetimer = 0;
+
+    snakex.push_back(9);
+    snakey.push_back(9);
+    snakex.push_back(9);
+    snakey.push_back(10);
+    snakex.push_back(9);
+    snakey.push_back(11);
+    dir = 'L';
 }
+
+void input()
+{
+    int key = getch();
+
+    switch (key)
+    {
+        case KEY_UP:
+            if(dir == 'D')
+                fail = true;
+            else
+                dir = 'U';
+            break;
+        case KEY_DOWN:
+            if(dir == 'U')
+                fail = true;
+            else
+                dir = 'D';
+            break;
+        case KEY_LEFT:
+            if(dir == 'R')
+                fail = true;
+            else
+                dir = 'L';
+            break;
+        case KEY_RIGHT:
+            if(dir == 'L')
+                fail = true;
+            else
+                dir = 'R';
+            break;
+    }
+}
+
+void move()
+{
+    movetimer += 1;
+    if(movetimer > 50)
+    {
+        int last = snakex.size();
+        map[stage][snakey[last-1]][snakex[last-1]] = 0;
+
+        for(int i = last-1; i > 0; i--)
+        {
+            snakex[i] = snakex[i-1];
+            snakey[i] = snakey[i-1];
+        }
+
+        switch (dir)
+        {
+            case 'U':
+                snakey[0] -= 1;
+            case 'D':
+                snakey[0] += 1;
+            case 'L':
+                snakex[0] -= 1;
+            case 'R':
+                snakex[0] += 1;
+        }
+        
+        map[stage][snakey[0]][snakex[0]] = 3;
+        for(int i = 1; i < last; i++)
+        {
+            map[stage][snakey[i]][snakex[i]] = 4;
+        }
+        movetimer = 0;
+    }
+}
+
 void show()
 {
     // stage1

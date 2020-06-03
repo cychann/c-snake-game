@@ -73,8 +73,6 @@ void reset()
 
     snakex.push_back(9);
     snakey.push_back(9);
-    snakey.push_back(10);
-    snakey.push_back(11);
     snakex.push_back(10);
     snakey.push_back(9);
     snakex.push_back(11);
@@ -121,15 +119,15 @@ void move()
     if(movetimer > 50)
     {
         int last = snakex.size();
-        map[stage][snakey[last-1]][snakex[last-1]] = 0;
 
-        for(int i = last-1; i > 0; i--)
+        map[stage][snakey[last-1]][snakex[last-1]] = 0; // 몸통 마지막 좌표 지우기
+        for(int i = last-1; i > 0; i--) // 몸통 앞으로 한 칸 씩 복제
         {
             snakex[i] = snakex[i-1];
             snakey[i] = snakey[i-1];
         }
 
-        switch (dir)
+        switch (dir) // 머리 좌표 이동
         {
             case 'U':
                 snakey[0]--;
@@ -144,11 +142,18 @@ void move()
                 snakex[0]++;
                 break;
         }
-        
-        map[stage][snakey[0]][snakex[0]] = 3;
-        for(int i = 1; i < last; i++)
+
+        if(map[stage][snakey[0]][snakex[0]] == 4 || map[stage][snakey[0]][snakex[0]] == 1) // Game Rule #1 실패 조건
         {
-            map[stage][snakey[i]][snakex[i]] = 4;
+            fail = true;
+        }
+        else
+        {
+            map[stage][snakey[0]][snakex[0]] = 3; // map 에 수정된 snake의 좌표 전달
+            for(int i = 1; i < last; i++)
+            {
+                map[stage][snakey[i]][snakex[i]] = 4;
+            }
         }
         movetimer = 0;
     }

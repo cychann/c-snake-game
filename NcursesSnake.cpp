@@ -73,10 +73,12 @@ void reset()
 
     snakex.push_back(9);
     snakey.push_back(9);
-    snakex.push_back(9);
     snakey.push_back(10);
-    snakex.push_back(9);
     snakey.push_back(11);
+    snakex.push_back(10);
+    snakey.push_back(9);
+    snakex.push_back(11);
+    snakey.push_back(9);
     dir = 'L';
 }
 
@@ -130,13 +132,17 @@ void move()
         switch (dir)
         {
             case 'U':
-                snakey[0] -= 1;
+                snakey[0]--;
+                break;
             case 'D':
-                snakey[0] += 1;
+                snakey[0]++;
+                break;
             case 'L':
-                snakex[0] -= 1;
+                snakex[0]--;
+                break;
             case 'R':
-                snakex[0] += 1;
+                snakex[0]++;
+                break;
         }
         
         map[stage][snakey[0]][snakex[0]] = 3;

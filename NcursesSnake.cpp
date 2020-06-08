@@ -1,6 +1,8 @@
 #include <ncurses.h>
 #include <unistd.h>
 #include <vector>
+#include <time.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -12,6 +14,7 @@ char dir; // 방향 U D L R
 int movetimer; // move 함수용 타이머 시간 저장
 vector<int> snakex;
 vector<int> snakey; // 뱀 x, y좌표
+int food_x, food_y;
 int map[4][21][21] = {
     {
         {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
@@ -36,16 +39,17 @@ int map[4][21][21] = {
         {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
         {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
     }
- }; // [stage][행][열]) 일단은 스테이지 1만
+}; // [stage][행][열]) 일단은 스테이지 1만
 
 void reset(); // 게임 시작시 함수 초기화
 void input(); // 키 입력
 void move(); // 입력 받은 키에 따라 이동
 void show(); // 그래픽을 보여주는 함수
+void food(); // growth 아이템을 만드는 함수
 
 
 int main()
-{   
+{
     initscr(); // 터미널 초기화
     start_color(); // 컬러모드 사용
     nodelay(stdscr, true); // 키 입력 기다리지 않음
@@ -54,7 +58,7 @@ int main()
     cbreak(); // 입력받은 키 바로 활용
     keypad(stdscr, TRUE); // 특수 키 사용 가능
     reset();
-    while(!fail)
+    while (!fail)
     {
         input();
         move();
@@ -78,6 +82,7 @@ void reset()
     snakex.push_back(11);
     snakey.push_back(9);
     dir = 'L';
+    food();
 }
 
 void input()
@@ -86,71 +91,74 @@ void input()
 
     switch (key)
     {
-        case KEY_UP:
-            if(dir == 'D')
-                fail = true;
-            else
-                dir = 'U';
-            break;
-        case KEY_DOWN:
-            if(dir == 'U')
-                fail = true;
-            else
-                dir = 'D';
-            break;
-        case KEY_LEFT:
-            if(dir == 'R')
-                fail = true;
-            else
-                dir = 'L';
-            break;
-        case KEY_RIGHT:
-            if(dir == 'L')
-                fail = true;
-            else
-                dir = 'R';
-            break;
+    case KEY_UP:
+        if (dir == 'D')
+            fail = true;
+        else
+            dir = 'U';
+        break;
+    case KEY_DOWN:
+        if (dir == 'U')
+            fail = true;
+        else
+            dir = 'D';
+        break;
+    case KEY_LEFT:
+        if (dir == 'R')
+            fail = true;
+        else
+            dir = 'L';
+        break;
+    case KEY_RIGHT:
+        if (dir == 'L')
+            fail = true;
+        else
+            dir = 'R';
+        break;
     }
 }
 
 void move()
 {
+    if (map[stage][food_x][food_y] == 3 || map[stage][food_x][food_y] == 4) { //food와 충돌했을 경우
+        food(); //새로운 food 추가
+    }
     movetimer += 1;
-    if(movetimer > 50)
+    if (movetimer > 50)
     {
         int last = snakex.size();
 
-        map[stage][snakey[last-1]][snakex[last-1]] = 0; // 몸통 마지막 좌표 지우기
-        for(int i = last-1; i > 0; i--) // 몸통 앞으로 한 칸 씩 복제
+        map[stage][snakey[last - 1]][snakex[last - 1]] = 0; // 몸통 마지막 좌표 지우기
+        for (int i = last - 1; i > 0; i--) // 몸통 앞으로 한 칸 씩 복제
         {
-            snakex[i] = snakex[i-1];
-            snakey[i] = snakey[i-1];
+            snakex[i] = snakex[i - 1];
+            snakey[i] = snakey[i - 1];
         }
 
         switch (dir) // 머리 좌표 이동
         {
-            case 'U':
-                snakey[0]--;
-                break;
-            case 'D':
-                snakey[0]++;
-                break;
-            case 'L':
-                snakex[0]--;
-                break;
-            case 'R':
-                snakex[0]++;
-                break;
+        case 'U':
+            snakey[0]--;
+            break;
+        case 'D':
+            snakey[0]++;
+            break;
+        case 'L':
+            snakex[0]--;
+            break;
+        case 'R':
+            snakex[0]++;
+            break;
         }
 
-        if(map[stage][snakey[0]][snakex[0]] == 4 || map[stage][snakey[0]][snakex[0]] == 1) // Game Rule #1 실패 조건
+        if (map[stage][snakey[0]][snakex[0]] == 4 || map[stage][snakey[0]][snakex[0]] == 1) // Game Rule #1 실패 조건
         {
             fail = true;
         }
         else
         {
             map[stage][snakey[0]][snakex[0]] = 3; // map 에 수정된 snake의 좌표 전달
-            for(int i = 1; i < last; i++)
+            for (int i = 1; i < last; i++)
             {
                 map[stage][snakey[i]][snakex[i]] = 4;
             }
@@ -183,9 +191,35 @@ void show()
                     else if (map[i][j][z] == 4) {
                         printw("o"); //body
                     }
+                    else if (map[i][j][z] == 5) {
+                        printw("F"); //food
+                    }
+                    else if (map[i][j][z] == 6) {
+                        printw("P"); //poison
+                    }
                 }
             }
         }
     }
     refresh();
+}
+void food() {
+    int r = 0; //난수 생성 변수
+    int food_crush_on = 0; // food가 뱀 몸통과 부딪힐 경우
+    while (1) {
+        food_crush_on = 0;
+        srand((unsigned)time(NULL) + r); //난수표생성
+        food_x = (rand() % 19) + 1; //난수를 좌표값에
+        food_y = (rand() % 19) + 1;
+
+        if (map[stage][food_x][food_y] == 3 || map[stage][food_x][food_y] == 4) { //food가 뱀과 부딪히면
+            food_crush_on = 1; //on
+            r++;
+        }
+        if (food_crush_on == 1) continue; //부딪히면 while문 다시 시작
+
+        map[stage][food_x][food_y] = 5; //안부딪히면 좌표에 food를 찍음
+        break;
+
+    }
 }

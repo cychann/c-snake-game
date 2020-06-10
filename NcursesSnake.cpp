@@ -14,7 +14,8 @@ char dir; // 방향 U D L R
 int movetimer; // move 함수용 타이머 시간 저장
 vector<int> snakex;
 vector<int> snakey; // 뱀 x, y좌표
-int food_x, food_y;
+int g_itemx, g_itemy; // growth item x,y 좌표
+int p_itemx, p_itemy; // poison item x,y 좌표
 int map[4][21][21] = {
     {
         {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
@@ -45,8 +46,8 @@ void reset(); // 게임 시작시 함수 초기화
 void input(); // 키 입력
 void move(); // 입력 받은 키에 따라 이동
 void show(); // 그래픽을 보여주는 함수
-void food(); // growth 아이템을 만드는 함수
-
+void growth_item(); // growth item 만드는 함수
+void poison_item(); // poison item 만드는 함수
 
 int main()
 {
@@ -82,7 +83,8 @@ void reset()
     snakex.push_back(11);
     snakey.push_back(9);
     dir = 'L';
-    food();
+    growth_item();
+    poison_item();
 }
 
 void input()
@@ -120,8 +122,11 @@ void input()
 
 void move()
 {
-    if (map[stage][food_x][food_y] == 3 || map[stage][food_x][food_y] == 4) { //food와 충돌했을 경우
-        food(); //새로운 food 추가
+    if (map[stage][g_itemx][g_itemy] == 3 || map[stage][g_itemx][g_itemy] == 4) { // growth item과 충돌했을 경우
+        growth_item(); //새로운 item 추가
+    }
+    if (map[stage][p_itemx][p_itemy] == 3 || map[stage][p_itemx][p_itemy] == 4) { // posion item과 충돌했을 경우
+        poison_item(); //새로운 item 추가
     }
     movetimer += 1;
     if (movetimer > 50)
@@ -203,23 +208,45 @@ void show()
     }
     refresh();
 }
-void food() {
+void growth_item() {
     int r = 0; //난수 생성 변수
-    int food_crush_on = 0; // food가 뱀 몸통과 부딪힐 경우
+    int food_crush_on = 0; //item이 뱀과 충돌했을 경우 1
     while (1) {
         food_crush_on = 0;
         srand((unsigned)time(NULL) + r); //난수표생성
-        food_x = (rand() % 19) + 1; //난수를 좌표값에
-        food_y = (rand() % 19) + 1;
+        g_itemx = (rand() % 19) + 1; //난수를 좌표값에
+        g_itemy = (rand() % 19) + 1;
 
-        if (map[stage][food_x][food_y] == 3 || map[stage][food_x][food_y] == 4) { //food가 뱀과 부딪히면
+        if (map[stage][g_itemx][g_itemy] != 0) { //item이 맵에서 0이 아닌 부분과 만나면
             food_crush_on = 1; //on
             r++;
         }
         if (food_crush_on == 1) continue; //부딪히면 while문 다시 시작
 
-        map[stage][food_x][food_y] = 5; //안부딪히면 좌표에 food를 찍음
+        map[stage][g_itemx][g_itemy] = 5; //안부딪히면 좌표에 item을 찍음
         break;
 
     }
+
+}
+void poison_item() {
+    int r = 3;
+    int food_crush_on = 0;
+    while (1) {
+        food_crush_on = 0;
+        srand((unsigned)time(NULL) + r);
+        p_itemx = (rand() % 19) + 1;
+        p_itemy = (rand() % 19) + 1;
+
+        if (map[stage][p_itemx][p_itemy] != 0) {
+            food_crush_on = 1;
+            r++;
+        }
+        if (food_crush_on == 1) continue;
+
+        map[stage][p_itemx][p_itemy] = 6;
+        break;
+
+    }
+
 }

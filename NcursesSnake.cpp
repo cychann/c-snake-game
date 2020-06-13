@@ -16,6 +16,9 @@ vector<int> snakex;
 vector<int> snakey; // 뱀 x, y좌표
 int g_itemx, g_itemy; // growth item x,y 좌표
 int p_itemx, p_itemy; // poison item x,y 좌표
+int gate1_x, gate1_y; // gate1의 x,y좌표
+int gate2_x, gate2_y; // gate2의 x,y좌표
+
 int map[4][21][21] = {
     {
         {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
@@ -48,6 +51,7 @@ void move(); // 입력 받은 키에 따라 이동
 void show(); // 그래픽을 보여주는 함수
 void growth_item(); // growth item 만드는 함수
 void poison_item(); // poison item 만드는 함수
+void gate(); //gate를 만드는 함수
 
 int main()
 {
@@ -85,6 +89,7 @@ void reset()
     dir = 'L';
     growth_item();
     poison_item();
+    gate();
 }
 
 void input()
@@ -202,6 +207,9 @@ void show()
                     else if (map[i][j][z] == 6) {
                         printw("P"); //poison
                     }
+                    else if (map[i][j][z] == 7) {
+                        printw("G"); //gate
+                    }
                 }
             }
         }
@@ -248,5 +256,24 @@ void poison_item() {
         break;
 
     }
-
+}
+void gate() {
+    srand((unsigned)time(NULL));
+    while (1) {
+        gate1_x = (rand() % 22); //랜덤으로 gate1의 x,y좌표 설정
+        gate1_y = (rand() % 22);
+        if (map[stage][gate1_x][gate1_y] == 1) {  //난수가 wall이 될때까지 실행함
+            map[stage][gate1_x][gate1_y] = 7;       // wall이면 gate로 변경
+            break;
+        }
+    }
+    srand((unsigned)time(NULL));
+    while (1) {
+        gate2_x = (rand() % 22); //랜덤으로 gate2의 x,y좌표 설정
+        gate2_y = (rand() % 22);
+        if (map[stage][gate2_x][gate2_y] == 1) {
+            map[stage][gate2_x][gate2_y] = 7;
+            break;
+        }
+    }
 }

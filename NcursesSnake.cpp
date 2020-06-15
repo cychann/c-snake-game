@@ -18,6 +18,7 @@ int g_itemx, g_itemy; // growth item x,y 좌표
 int p_itemx, p_itemy; // poison item x,y 좌표
 int gate1_x, gate1_y; // gate1의 x,y좌표
 int gate2_x, gate2_y; // gate2의 x,y좌표
+int gatecount; // gate 함수 재호출용
 
 int map[4][21][21] = {
     {
@@ -90,6 +91,7 @@ void reset()
     growth_item();
     poison_item();
     gate();
+    gatecount = 0;
 }
 
 void input()
@@ -130,6 +132,16 @@ void move()
     movetimer += 1;
     if (movetimer > 50)
     {
+        if (gatecount > 0)
+        {
+            if (gatecount == 1)
+            {
+                map[stage][gate1_y][gate1_x] = 1;
+                map[stage][gate2_y][gate2_x] = 1;
+                gate();
+            }
+            gatecount --;
+        }
         int last = snakex.size();
 
         int lastx = snakex[last - 1]; //몸통 마지막 좌표 저장
@@ -181,6 +193,186 @@ void move()
                 snakey.pop_back();
                 poison_item();
             }
+        }
+        else if (map[stage][snakey[0]][snakex[0]] == 7) //Gate 통과시
+        {
+            gatecount = last;
+
+            int exitx, exity; // 출구 좌표 저장
+            /*
+            for (int i = 0; i < 21; i++)
+            {
+                for (int j = 0; j < 21; j++)
+                {
+                    if (map[stage][j][i] == 7)
+                    {
+                        if (snakex[0] != i)
+                        {
+                            exitx = i;
+                            exity = j;
+                        }
+                    }
+                }
+            }*/
+            if(snakex[0] == gate1_x)
+            {
+                exitx = gate2_x;
+                exity = gate2_y;
+            }
+            else
+            {
+                exitx = gate1_x;
+                exity = gate1_y;
+            }
+
+            if(exitx == 0) // Gate 진출 방향 1
+            {
+                snakex[0] = exitx + 1;
+                snakey[0] = exity;
+                dir = 'R';
+            }
+            else if(exitx == 20)
+            {
+                snakex[0] = exitx - 1;
+                snakey[0] = exity;
+                dir = 'L';
+            }
+            else if(exity == 0)
+            {
+                snakex[0] = exitx;
+                snakey[0] = exity + 1;
+                dir = 'D';
+            }
+            else if(exity == 20)
+            {
+                snakex[0] = exitx;
+                snakey[0] = exity - 1;
+                dir = 'U';
+            }/*
+            else // Gate 진출 방향 2
+            {   
+                snakex[0] = exitx;
+                snakey[0] = exity;
+                switch (dir) // 진입 방향과 일치하는 방향
+                {
+                case 'U':
+                    snakey[0]--;
+                    break;
+                case 'D':
+                    snakey[0]++;
+                    break;
+                case 'L':
+                    snakex[0]--;
+                    break;
+                case 'R':
+                    snakex[0]++;
+                    break;
+                }
+                if (map[stage][snakey[0]][snakex[0]] != 7 || map[stage][snakey[0]][snakex[0]] != 1 || map[stage][snakey[0]][snakex[0]] != 2)
+                {
+
+                    switch (dir) // 진입 방향의 시계방향
+                    {
+                    case 'U':
+                        dir = 'R';
+                        break;
+                    case 'D':
+                        dir = 'L';
+                        break;
+                    case 'L':
+                        dir = 'U';
+                        break;
+                    case 'R':
+                        dir = 'D';
+                        break;
+                    }
+
+                    switch (dir)
+                    {
+                    case 'U':
+                        snakey[0]--;
+                        break;
+                    case 'D':
+                        snakey[0]++;
+                        break;
+                    case 'L':
+                        snakex[0]--;
+                        break;
+                    case 'R':
+                        snakex[0]++;
+                        break;
+                    }
+
+                    if (map[stage][snakey[0]][snakex[0]] != 7 || map[stage][snakey[0]][snakex[0]] != 1 || map[stage][snakey[0]][snakex[0]] != 2)
+                    {
+                        switch (dir) // 진입 방향의 반시계방향
+                        {
+                        case 'U':
+                            dir = 'L';
+                            break;
+                        case 'D':
+                            dir = 'R';
+                            break;
+                        case 'L':
+                            dir = 'D';
+                            break;
+                        case 'R':
+                            dir = 'U';
+                            break;
+                        }
+
+                        switch (dir)
+                        {
+                        case 'U':
+                            snakey[0]--;
+                            break;
+                        case 'D':
+                            snakey[0]++;
+                            break;
+                        case 'L':
+                            snakex[0]--;
+                            break;
+                        case 'R':
+                            snakex[0]++;
+                            break;
+                        }
+                        if (map[stage][snakey[0]][snakex[0]] != 7 || map[stage][snakey[0]][snakex[0]] != 1 || map[stage][snakey[0]][snakex[0]] != 2)
+                        {
+                            switch (dir) // 진입 방향과 반대 방향
+                            {
+                            case 'U':
+                                dir = 'D';
+                                break;
+                            case 'D':
+                                dir = 'U';
+                                break;
+                            case 'L':
+                                dir = 'R';
+                                break;
+                            case 'R':
+                                dir = 'L';
+                                break;
+                            }
+
+                            switch (dir)
+                            {
+                            case 'U':
+                                snakey[0]--;
+                                break;
+                            case 'D':
+                                snakey[0]++;
+                                break;
+                            case 'L':
+                                snakex[0]--;
+                                break;
+                            case 'R':
+                                snakex[0]++;
+                                break;
+                            }
+                        }
+                    }
+                }    
+            } */           
         }
 
         map[stage][snakey[0]][snakex[0]] = 3; // map 에 수정된 snake의 좌표 전달
@@ -238,16 +430,16 @@ void growth_item() {
     while (1) {
         food_crush_on = 0;
         srand((unsigned)time(NULL) + r); //난수표생성
-        g_itemx = (rand() % 19) + 1; //난수를 좌표값에
-        g_itemy = (rand() % 19) + 1;
+        g_itemx = (rand() % 18) + 1; //난수를 좌표값에
+        g_itemy = (rand() % 18) + 1;
 
-        if (map[stage][g_itemx][g_itemy] != 0) { //item이 맵에서 0이 아닌 부분과 만나면
+        if (map[stage][g_itemy][g_itemx] != 0) { //item이 맵에서 0이 아닌 부분과 만나면
             food_crush_on = 1; //on
             r++;
         }
         if (food_crush_on == 1) continue; //부딪히면 while문 다시 시작
 
-        map[stage][g_itemx][g_itemy] = 5; //안부딪히면 좌표에 item을 찍음
+        map[stage][g_itemy][g_itemx] = 5; //안부딪히면 좌표에 item을 찍음
         break;
 
     }
@@ -259,16 +451,16 @@ void poison_item() {
     while (1) {
         food_crush_on = 0;
         srand((unsigned)time(NULL) + r);
-        p_itemx = (rand() % 19) + 1;
-        p_itemy = (rand() % 19) + 1;
+        p_itemx = (rand() % 18) + 1;
+        p_itemy = (rand() % 18) + 1;
 
-        if (map[stage][p_itemx][p_itemy] != 0) {
+        if (map[stage][p_itemy][p_itemx] != 0) {
             food_crush_on = 1;
             r++;
         }
         if (food_crush_on == 1) continue;
 
-        map[stage][p_itemx][p_itemy] = 6;
+        map[stage][p_itemy][p_itemx] = 6;
         break;
 
     }
@@ -276,19 +468,19 @@ void poison_item() {
 void gate() {
     srand((unsigned)time(NULL));
     while (1) {
-        gate1_x = (rand() % 22); //랜덤으로 gate1의 x,y좌표 설정
-        gate1_y = (rand() % 22);
-        if (map[stage][gate1_x][gate1_y] == 1) {  //난수가 wall이 될때까지 실행함
-            map[stage][gate1_x][gate1_y] = 7;       // wall이면 gate로 변경
+        gate1_x = (rand() % 21); //랜덤으로 gate1의 x,y좌표 설정
+        gate1_y = (rand() % 21);
+        if (map[stage][gate1_y][gate1_x] == 1) {  //난수가 wall이 될때까지 실행함
+            map[stage][gate1_y][gate1_x] = 7;       // wall이면 gate로 변경
             break;
         }
     }
     srand((unsigned)time(NULL));
     while (1) {
-        gate2_x = (rand() % 22); //랜덤으로 gate2의 x,y좌표 설정
-        gate2_y = (rand() % 22);
-        if (map[stage][gate2_x][gate2_y] == 1) {
-            map[stage][gate2_x][gate2_y] = 7;
+        gate2_x = (rand() % 21); //랜덤으로 gate2의 x,y좌표 설정
+        gate2_y = (rand() % 21);
+        if (map[stage][gate2_y][gate2_x] == 1) {
+            map[stage][gate2_y][gate2_x] = 7;
             break;
         }
     }

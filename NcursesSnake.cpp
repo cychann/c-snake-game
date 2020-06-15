@@ -127,16 +127,13 @@ void input()
 
 void move()
 {
-    if (map[stage][g_itemx][g_itemy] == 3 || map[stage][g_itemx][g_itemy] == 4) { // growth item과 충돌했을 경우
-        growth_item(); //새로운 item 추가
-    }
-    if (map[stage][p_itemx][p_itemy] == 3 || map[stage][p_itemx][p_itemy] == 4) { // posion item과 충돌했을 경우
-        poison_item(); //새로운 item 추가
-    }
     movetimer += 1;
     if (movetimer > 50)
     {
         int last = snakex.size();
+
+        int lastx = snakex[last - 1]; //몸통 마지막 좌표 저장
+        int lasty = snakey[last - 1];
 
         map[stage][snakey[last - 1]][snakex[last - 1]] = 0; // 몸통 마지막 좌표 지우기
         for (int i = last - 1; i > 0; i--) // 몸통 앞으로 한 칸 씩 복제
@@ -165,14 +162,33 @@ void move()
         {
             fail = true;
         }
-        else
+        else if (map[stage][snakey[0]][snakex[0]] == 5) // growth item 획득시
         {
-            map[stage][snakey[0]][snakex[0]] = 3; // map 에 수정된 snake의 좌표 전달
-            for (int i = 1; i < last; i++)
+            snakex.push_back(lastx); // 몸통 뒤에 좌표 추가
+            snakey.push_back(lasty);
+            growth_item();
+        }
+        else if (map[stage][snakey[0]][snakex[0]] == 6) // poison item 획득시
+        {
+            if(last == 3) // 길이가 3이면 실패
             {
-                map[stage][snakey[i]][snakex[i]] = 4;
+                fail = true;
+            }
+            else
+            {
+                map[stage][snakey[last - 1]][snakex[last - 1]] = 0; // 몸통 마지막 좌표 지우기
+                snakex.pop_back(); // 좌표값 삭제
+                snakey.pop_back();
+                poison_item();
             }
         }
+
+        map[stage][snakey[0]][snakex[0]] = 3; // map 에 수정된 snake의 좌표 전달
+        for (int i = 1; i < snakex.size(); i++)
+        {
+            map[stage][snakey[i]][snakex[i]] = 4;
+        }
+
         movetimer = 0;
     }
 }

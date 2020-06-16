@@ -92,6 +92,16 @@ void reset()
     poison_item();
     gate();
     gatecount = 0;
+
+    //colors
+    init_pair(1, COLOR_WHITE, COLOR_WHITE); 
+    init_pair(2, COLOR_BLUE, COLOR_BLUE);
+    init_pair(3, COLOR_YELLOW, COLOR_YELLOW);
+    init_pair(4, COLOR_CYAN, COLOR_CYAN);
+    init_pair(5, COLOR_GREEN, COLOR_GREEN);
+    init_pair(6, COLOR_RED, COLOR_RED);
+    init_pair(7, COLOR_MAGENTA, COLOR_MAGENTA);
+
 }
 
 void input()
@@ -170,6 +180,7 @@ void move()
             break;
         }
 
+        int grown = 0, poisoned = 0; // 뱀 이동 후 아이템 생성 함수 호출하기 위한 변수
         if (map[stage][snakey[0]][snakex[0]] == 4 || map[stage][snakey[0]][snakex[0]] == 1) // Game Rule #1 실패 조건
         {
             fail = true;
@@ -178,7 +189,7 @@ void move()
         {
             snakex.push_back(lastx); // 몸통 뒤에 좌표 추가
             snakey.push_back(lasty);
-            growth_item();
+            grown = 1;
         }
         else if (map[stage][snakey[0]][snakex[0]] == 6) // poison item 획득시
         {
@@ -191,7 +202,7 @@ void move()
                 map[stage][snakey[last - 1]][snakex[last - 1]] = 0; // 몸통 마지막 좌표 지우기
                 snakex.pop_back(); // 좌표값 삭제
                 snakey.pop_back();
-                poison_item();
+                poisoned = 1;
             }
         }
         else if (map[stage][snakey[0]][snakex[0]] == 7) //Gate 통과시
@@ -380,6 +391,11 @@ void move()
         {
             map[stage][snakey[i]][snakex[i]] = 4;
         }
+        if(poisoned == 1)
+            poison_item();
+
+        if(grown == 1)
+            growth_item();
 
         movetimer = 0;
     }
@@ -395,28 +411,42 @@ void show()
             for (int z = 0; z < 21; z++) {
                 if (i == 0) {
                     if (map[i][j][z] == 2) {
+                        attron(COLOR_PAIR(2));
                         printw("+"); //lmmune wall
+                        attroff(COLOR_PAIR(2));
                     }
                     else if (map[i][j][z] == 1) {
+                        attron(COLOR_PAIR(1));
                         printw("-"); //wall
+                        attroff(COLOR_PAIR(1));
                     }
                     else if (map[i][j][z] == 0) {
                         printw(" ");
                     }
                     else if (map[i][j][z] == 3) {
+                        attron(COLOR_PAIR(3));
                         printw("0"); //head
+                        attroff(COLOR_PAIR(3));
                     }
                     else if (map[i][j][z] == 4) {
+                        attron(COLOR_PAIR(4));
                         printw("o"); //body
+                        attroff(COLOR_PAIR(4));
                     }
                     else if (map[i][j][z] == 5) {
+                        attron(COLOR_PAIR(5));
                         printw("F"); //food
+                        attroff(COLOR_PAIR(5));
                     }
                     else if (map[i][j][z] == 6) {
+                        attron(COLOR_PAIR(6));
                         printw("P"); //poison
+                        attroff(COLOR_PAIR(6));
                     }
                     else if (map[i][j][z] == 7) {
+                        attron(COLOR_PAIR(7));
                         printw("G"); //gate
+                        attroff(COLOR_PAIR(7));
                     }
                 }
             }

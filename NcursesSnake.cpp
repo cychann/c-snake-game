@@ -6,7 +6,7 @@
 
 using namespace std;
 
-#define tick 10000 // 틱레이트 마이크로초 단위 1초에 100틱
+#define tick 100000 // 틱레이트 마이크로초 단위 1초에 10틱
 
 bool fail; // 게임 실패 여부
 int stage;
@@ -14,8 +14,8 @@ char dir; // 방향 U D L R
 int movetimer; // move 함수용 타이머 시간 저장
 vector<int> snakex;
 vector<int> snakey; // 뱀 x, y좌표
-int g_itemx, g_itemy; // growth item x,y 좌표
-int p_itemx, p_itemy; // poison item x,y 좌표
+int g_itemx, g_itemy, g_timer; // growth item x,y 좌표, 타이머
+int p_itemx, p_itemy, p_timer; // poison item x,y 좌표, 타이머
 int gate1_x, gate1_y; // gate1의 x,y좌표
 int gate2_x, gate2_y; // gate2의 x,y좌표
 int gatecount; // gate 함수 재호출용
@@ -54,6 +54,7 @@ void show(); // 그래픽을 보여주는 함수
 void growth_item(); // growth item 만드는 함수
 void poison_item(); // poison item 만드는 함수
 void gate(); //gate를 만드는 함수
+void timer(); // 타이머
 
 int main()
 {
@@ -67,8 +68,8 @@ int main()
     reset();
     while (!fail)
     {
+        timer();
         input();
-        move();
         show();
         usleep(tick);
     }
@@ -80,7 +81,9 @@ void reset()
 {
     fail = false;
     stage = 0;
-    movetimer = 0;
+    movetimer = 5;
+    g_timer = 50;
+    p_timer = 50;
 
     snakex.push_back(9);
     snakey.push_back(9);
@@ -160,30 +163,39 @@ void move()
         map[stage][snakey[last - 1]][snakex[last - 1]] = 0; // 몸통 마지막 좌표 지우기
         for (int i = last - 1; i > 0; i--) // 몸통 앞으로 한 칸 씩 복제
         {
-            snakex[i] = snakex[i - 1];
-            snakey[i] = snakey[i - 1];
+            fail = true;
         }
-
-        switch (dir) // 머리 좌표 이동
+        else
         {
-        case 'U':
-            snakey[0]--;
-            break;
-        case 'D':
-            snakey[0]++;
-            break;
-        case 'L':
-            snakex[0]--;
-            break;
-        case 'R':
-            snakex[0]++;
-            break;
+            map[stage][snakey[last - 1]][snakex[last - 1]] = 0; // 몸통 마지막 좌표 지우기
+            snakex.pop_back(); // 좌표값 삭제
+            snakey.pop_back();
+            poisoned = 1;
         }
+    }
+    else if (map[stage][snakey[0]][snakex[0]] == 7) //Gate 통과시
+    {
+        gatecount = last;
 
         int grown = 0, poisoned = 0; // 뱀 이동 후 아이템 생성 함수 호출하기 위한 변수
         if (map[stage][snakey[0]][snakex[0]] == 4 || map[stage][snakey[0]][snakex[0]] == 1) // Game Rule #1 실패 조건
         {
-            fail = true;
+            for (int j = 0; j < 21; j++)
+            {
+                if (map[stage][j][i] == 7)
+                {
+                    if (snakex[0] != i)
+                    {
+                        exitx = i;
+                        exity = j;
+                    }
+                }
+            }
+        }
+        if(snakex[0] == gate1_x)
+        {
+            exitx = gate2_x;
+            exity = gate2_y;
         }
         else if (map[stage][snakey[0]][snakex[0]] == 5) // growth item 획득시
         {
@@ -519,5 +531,30 @@ void gate() {
             map[stage][gate2_y][gate2_x] = 7;
             break;
         }
+    }
+}
+
+void timer()
+{
+    g_timer --;
+    p_timer --;
+    movetimer --;
+
+    if(g_timer == 0)
+    {
+        map[stage][g_itemy][g_itemx] = 0;
+        growth_item();
+        g_timer = 50;
+    }
+    if(p_timer == 0)
+    {
+        map[stage][p_itemy][p_itemx] = 0;
+        poison_item();
+        p_timer = 50;
+    }
+    if(movetimer == 0)
+    {
+        move();
+        movetimer = 5;
     }
 }
